@@ -62,7 +62,7 @@ function concertThis() {
             console.log(`Date and Time: ${concertDate}\n\n- - - - -`);
           }
         } else {
-          console.log("Band or concert not found!");
+          console.log("Can't find information!");
         }
       }
     }
@@ -132,7 +132,7 @@ function movieThis() {
           }\n\n- - - - -`
         );
       } else {
-        return console.log("Movie able to be found. Error:" + err);
+        return console.log("Can't find info! Error:" + err);
       }
     }
   );
