@@ -15,17 +15,17 @@ function userCommand(userInput, userQuery) {
     case "concert-this":
       concertThis();
       break;
-    case "spotify-this":
+    case "spotify-this-song":
       spotifyThisSong();
       break;
     case "movie-this":
       movieThis();
       break;
-    case "do-this":
+    case "do-what-it-says":
       doThis(userQuery);
       break;
     default:
-      console.log("I don't understand");
+      console.log("This doesn't work");
       break;
   }
 }
@@ -47,7 +47,7 @@ function concertThis() {
         if (userBand.length > 0) {
           for (i = 0; i < 1; i++) {
             console.log(
-              `\nBA DA BOP!  That's for you...\n\nArtist: ${
+              `\nBand or Artist Info\n\nArtist: ${
                 userBand[i].lineup[0]
               } \nVenue: ${userBand[i].venue.name}\nVenue Location: ${
                 userBand[i].venue.latitude
