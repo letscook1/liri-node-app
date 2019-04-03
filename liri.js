@@ -1,119 +1,154 @@
 require("dotenv").config();
 
-var keys = require("./keys.js");
+var request = require("request");
+var moment = require("moment");
 var fs = require("fs");
+var keys = require("./keys.js");
 var Spotify = require("node-spotify-api");
 var spotify = new Spotify(keys.spotify);
-var request = require("request");
-var movieName = process.argv[3];
-var liriReturn = process.argv[2];
-
-switch (liriReturn) {
-  case "spotify-this-song":
-    spotifyThisSong();
-    break;
-
-  case "movie-this":
-    movieThis();
-    break;
-
-  case "do-what-it-says":
-    doWhatItSays();
-    break;
+var omdb = keys.omdb;
+var bandsintown = keys.bandsintown;
+var userInput = process.argv[2];
+var userQuery = process.argv.slice(3).join(" ");
+function userCommand(userInput, userQuery) {
+  switch (userInput) {
+    case "concert-this":
+      concertThis();
+      break;
+    case "spotify-this":
+      spotifyThisSong();
+      break;
+    case "movie-this":
+      movieThis();
+      break;
+    case "do-this":
+      doThis(userQuery);
+      break;
+    default:
+      console.log("I don't understand");
+      break;
+  }
 }
 
-function spotifyThisSong(trackName) {
-  var trackName = process.argv[3];
-  if (!trackName) {
-    trackName = "Yakety Sax";
+userCommand(userInput, userQuery);
+
+function concertThis() {
+  console.log(`\n - - - - -\n\nSEARCHING FOR...${userQuery}'s next show...`);
+
+  request(
+    "https://rest.bandsintown.com/artists/" +
+      userQuery +
+      "/events?app_id=" +
+      bandsintown,
+    function(err, response, body) {
+      if (!err && response.statusCode === 200) {
+        var userBand = JSON.parse(body);
+
+        if (userBand.length > 0) {
+          for (i = 0; i < 1; i++) {
+            console.log(
+              `\nBA DA BOP!  That's for you...\n\nArtist: ${
+                userBand[i].lineup[0]
+              } \nVenue: ${userBand[i].venue.name}\nVenue Location: ${
+                userBand[i].venue.latitude
+              },${userBand[i].venue.longitude}\nVenue City: ${
+                userBand[i].venue.city
+              }, ${userBand[i].venue.country}`
+            );
+
+            var concertDate = moment(userBand[i].datetime).format(
+              "MM/DD/YYYY hh:00 A"
+            );
+            console.log(`Date and Time: ${concertDate}\n\n- - - - -`);
+          }
+        } else {
+          console.log("Band or concert not found!");
+        }
+      }
+    }
+  );
+}
+
+function spotifyThisSong() {
+  console.log(`\n - - - - -\n\nSEARCHING FOR..."${userQuery}"`);
+
+  if (!userQuery) {
+    userQuery = "the sign ace of base";
   }
-  songRequest = trackName;
+
   spotify.search(
     {
       type: "track",
-      query: songRequest
+      query: userQuery,
+      limit: 1
     },
     function(err, data) {
-      if (!err) {
-        var trackInfo = data.tracks.items;
-        for (var i = 0; i < 5; i++) {
-          if (trackInfo[i] != undefined) {
-            var spotifyResults =
-              "Artist: " +
-              trackInfo[i].artists[0].name +
-              "\n" +
-              "Song: " +
-              trackInfo[i].name +
-              "\n" +
-              "Preview URL: " +
-              trackInfo[i].preview_url +
-              "\n" +
-              "Album: " +
-              trackInfo[i].album.name +
-              "\n";
+      if (err) {
+        return console.log("Error occurred: " + err);
+      }
 
-            console.log(spotifyResults);
-            console.log(" ");
-          }
-        }
-      } else {
-        console.log("error: " + err);
-        return;
+      var spotifyArr = data.tracks.items;
+
+      for (i = 0; i < spotifyArr.length; i++) {
+        console.log(
+          `\nSong Information\n\nArtist: ${
+            data.tracks.items[i].album.artists[0].name
+          } \nSong: ${data.tracks.items[i].name}\nAlbum: ${
+            data.tracks.items[i].album.name
+          }\nSpotify link: ${
+            data.tracks.items[i].external_urls.spotify
+          }\n\n - - - - -`
+        );
       }
     }
   );
 }
 
 function movieThis() {
-  var queryUrl =
-    "http://www.omdbapi.com/?t=" + movieName + "&y=&plot=short&apikey=trilogy";
+  console.log(`\n - - - - -\n\nSEARCHING FOR..."${userQuery}"`);
+  if (!userQuery) {
+    userQuery = "mr nobody";
+  }
 
-  request(queryUrl, function(error, response, body) {
-    if (!error && response.statusCode === 200) {
-      var myMovieData = JSON.parse(body);
-      var queryUrlResults =
-        "Title: " +
-        myMovieData.Title +
-        " " +
-        "Year: " +
-        myMovieData.Year +
-        " " +
-        "IMDB Rating: " +
-        myMovieData.Ratings[0].Value +
-        " " +
-        "Rotten Tomatoes Rating: " +
-        myMovieData.Ratings[1].Value +
-        " " +
-        "Origin Country: " +
-        myMovieData.Country +
-        " " +
-        "Language: " +
-        myMovieData.Language +
-        " " +
-        "Plot: " +
-        myMovieData.Plot +
-        " " +
-        "Actors: " +
-        myMovieData.Actors +
-        " ";
+  request(
+    "http://www.omdbapi.com/?t=" + userQuery + "&apikey=86fe999c",
+    function(err, response, body) {
+      var userMovie = JSON.parse(body);
 
-      console.log(queryUrlResults);
-    } else {
-      console.log("error: " + err);
-      return;
+      var ratingsArr = userMovie.Ratings;
+      if (ratingsArr.length > 2) {
+      }
+
+      if (!err && response.statusCode === 200) {
+        console.log(
+          `\nFilm Information\n\nTitle: ${userMovie.Title}\nCast: ${
+            userMovie.Actors
+          }\nReleased: ${userMovie.Year}\nIMDb Rating: ${
+            userMovie.imdbRating
+          }\nRotten Tomatoes Rating: ${userMovie.Ratings[1].Value}\nCountry: ${
+            userMovie.Country
+          }\nLanguage: ${userMovie.Language}\nPlot: ${
+            userMovie.Plot
+          }\n\n- - - - -`
+        );
+      } else {
+        return console.log("Movie able to be found. Error:" + err);
+      }
     }
-  });
+  );
 }
 
-function doWhatItSays() {
-  fs.writeFile("random.txt", 'spotify-this-song,"The Sign"', function(err) {
-    var song = "spotify-this-song 'Yakety Sax'";
-
+function doThis() {
+  fs.readFile("random.txt", "UTF8", function(err, data) {
     if (err) {
       return console.log(err);
     }
 
-    // Otherwise, it will print:
-    console.log(song);
+    var dataArr = data.split(",");
+
+    userInput = dataArr[0];
+    userQuery = dataArr[1];
+
+    userCommand(userInput, userQuery);
   });
 }
