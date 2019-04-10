@@ -106,25 +106,20 @@ function movieThis() {
 
   axios
     .get(
-      "http://www.omdbapi.com/?t=" +
-        userQuery +
-        "&y=&plot=short&apikey=" +
-        keys.omdb
+      "http://www.omdbapi.com/?t=" + userQuery + "&y=&plot=short&apikey=trilogy"
     )
     .then(function(response) {
-      for (var j = 0; j < response.data.length; j++) {
-        console.log(
-          `\nFilm Information\n\nTitle: ${response.data[j].Title}\nCast: ${
-            response.data[j].Actors
-          }\nReleased: ${response.data[j].Year}\nIMDb Rating: ${
-            response.data[j].imdbRating
-          }\nRotten Tomatoes Rating: ${
-            response.data[j].Ratings[1].Value
-          }\nCountry: ${response.data[j].Country}\nLanguage: ${
-            response.data[j].Language
-          }\nPlot: ${response.data[j].Plot}\n\n- - - - -`
-        );
-      }
+      console.log(
+        `\nFilm Information\n\nTitle: ${response.data.Title}\nCast: ${
+          response.data.Actors
+        }\nReleased: ${response.data.Year}\nIMDb Rating: ${
+          response.data.imdbRating
+        }\nRotten Tomatoes Rating: ${
+          response.data.Ratings[1].Value
+        }\nCountry: ${response.data.Country}\nLanguage: ${
+          response.data.Language
+        }\nPlot: ${response.data.Plot}\n\n- - - - -`
+      );
     });
 }
 
