@@ -1,13 +1,11 @@
 require("dotenv").config();
 
-var request = require("request");
 var moment = require("moment");
 var fs = require("fs");
+var axios = require("axios");
 var keys = require("./keys.js");
 var Spotify = require("node-spotify-api");
 var spotify = new Spotify(keys.spotify);
-var omdb = keys.omdb;
-var bandsintown = keys.bandsintown;
 var userInput = process.argv[2];
 var userQuery = process.argv.slice(3).join(" ");
 function userCommand(userInput, userQuery) {
@@ -35,38 +33,34 @@ userCommand(userInput, userQuery);
 function concertThis() {
   console.log(`\n - - - - -\n\nSEARCHING FOR...${userQuery}'s next show...`);
 
-  request(
-    "https://rest.bandsintown.com/artists/" +
-      userQuery +
-      "/events?app_id=" +
-      bandsintown,
-    function(err, response, body) {
-      if (!err && response.statusCode === 200) {
-        var userBand = JSON.parse(body);
+  if (!userQuery) {
+    userQuery = "The Sign";
+  }
+  axios
+    .get(
+      "https://rest.bandsintown.com/artists/" +
+        userQuery +
+        "/events?app_id=" +
+        keys.bandsintown
+    )
+    .then(function(response) {
+      for (var i = 0; i < response.data.length; i++) {
+        console.log(
+          `\nBand or Artist Info\n\nArtist: ${
+            response.data[i].lineup[0]
+          } \nVenue: ${response.data[i].venue.name}\nVenue Location: ${
+            response.data[i].venue.latitude
+          },${response.data[i].venue.longitude}\nVenue City: ${
+            response.data[i].venue.city
+          }, ${response.data[i].venue.country}`
+        );
 
-        if (userBand.length > 0) {
-          for (i = 0; i < 1; i++) {
-            console.log(
-              `\nBand or Artist Info\n\nArtist: ${
-                userBand[i].lineup[0]
-              } \nVenue: ${userBand[i].venue.name}\nVenue Location: ${
-                userBand[i].venue.latitude
-              },${userBand[i].venue.longitude}\nVenue City: ${
-                userBand[i].venue.city
-              }, ${userBand[i].venue.country}`
-            );
-
-            var concertDate = moment(userBand[i].datetime).format(
-              "MM/DD/YYYY hh:00 A"
-            );
-            console.log(`Date and Time: ${concertDate}\n\n- - - - -`);
-          }
-        } else {
-          console.log("Can't find information!");
-        }
+        var concertDate = moment(response.data[i].datetime).format(
+          "MM/DD/YYYY hh:00 A"
+        );
+        console.log(`Date and Time: ${concertDate}\n\n- - - - -`);
       }
-    }
-  );
+    });
 }
 
 function spotifyThisSong() {
@@ -110,32 +104,28 @@ function movieThis() {
     userQuery = "mr nobody";
   }
 
-  request(
-    "http://www.omdbapi.com/?t=" + userQuery + "&apikey=86fe999c",
-    function(err, response, body) {
-      var userMovie = JSON.parse(body);
-
-      var ratingsArr = userMovie.Ratings;
-      if (ratingsArr.length > 2) {
-      }
-
-      if (!err && response.statusCode === 200) {
+  axios
+    .get(
+      "http://www.omdbapi.com/?t=" +
+        userQuery +
+        "&y=&plot=short&apikey=" +
+        keys.omdb
+    )
+    .then(function(response) {
+      for (var j = 0; j < response.data.length; j++) {
         console.log(
-          `\nFilm Information\n\nTitle: ${userMovie.Title}\nCast: ${
-            userMovie.Actors
-          }\nReleased: ${userMovie.Year}\nIMDb Rating: ${
-            userMovie.imdbRating
-          }\nRotten Tomatoes Rating: ${userMovie.Ratings[1].Value}\nCountry: ${
-            userMovie.Country
-          }\nLanguage: ${userMovie.Language}\nPlot: ${
-            userMovie.Plot
-          }\n\n- - - - -`
+          `\nFilm Information\n\nTitle: ${response.data[j].Title}\nCast: ${
+            response.data[j].Actors
+          }\nReleased: ${response.data[j].Year}\nIMDb Rating: ${
+            response.data[j].imdbRating
+          }\nRotten Tomatoes Rating: ${
+            response.data[j].Ratings[1].Value
+          }\nCountry: ${response.data[j].Country}\nLanguage: ${
+            response.data[j].Language
+          }\nPlot: ${response.data[j].Plot}\n\n- - - - -`
         );
-      } else {
-        return console.log("Can't find info! Error:" + err);
       }
-    }
-  );
+    });
 }
 
 function doThis() {
